@@ -113,7 +113,7 @@ class Game(object):
             "Black": "White",
             "White": "Black"
             }
-        self.winner = ""
+        self.winner = None
         print(self)
         self.show_turn()
 
