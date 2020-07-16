@@ -37,9 +37,6 @@ class Board(object):
 
 
 class Judge(object):
-    def __init__(self):
-        self.finished = False
-
     def extract_lines(self, board):
         lines_list = []
 
