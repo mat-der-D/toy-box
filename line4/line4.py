@@ -148,7 +148,7 @@ class Game(object):
 
     def help(self):
         print("""
-        Sorry, it has not implemented yet...
+        Sorry, it has not been implemented yet...
         """)
 
     def __repr__(self):
