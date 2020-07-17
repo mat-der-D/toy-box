@@ -1,0 +1,13 @@
+import os
+import random
+import sys
+
+sys.path.append(os.path.abspath(".."))
+
+import lineN
+
+
+
+if __name__ == '__main__':
+    g = Game(dim=3, disp=False)
+    
