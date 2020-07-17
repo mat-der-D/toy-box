@@ -101,14 +101,14 @@ class Judge(object):
 
         
 class Game(object):
-    def __init__(self):
+    def __init__(self, player1="BB", player2="WW"):
         self.b = Board()
         self.j = Judge()
         self.finished = False
-        self.turn = "Black"
+        self.turn = str(player1)
         self.dict_players = {
-            "Black": "White",
-            "White": "Black"
+            str(player1): str(player2),
+            str(player2): str(player1)
             }
         self.winner = None
         print(self)
@@ -143,17 +143,25 @@ class Game(object):
     def restart_game(self):
         self.__init__()
 
+    def show_board(self):
+        print(self)
+        
     def help(self):
-        print("""
-        Sorry, it has not been implemented yet...
-        """)
-
+        explanation = \
+        "g = Game()        : start game \n"            \
+        "g.put_stone(x, y) : put stone at (x, y) \n"   \
+        "g.restart_game()  : restart game \n"          \
+        "g.show_board()    : show board \n"            \
+        "g.show_turn()     : show who's turn it is \n" \
+        "g.show()          : show this"
+        print(explanation)
+        
     def __repr__(self):
         v_board = [[[
             self.b.board[x][y][z]
             for x in range(4)]
-            for y in range(4)]
-            for z in range(4)]
+            for y in range(3, -1, -1)]
+            for z in range(3, -1, -1)]
         return str(np.array(v_board))
 
 if __name__ == "__main__":
