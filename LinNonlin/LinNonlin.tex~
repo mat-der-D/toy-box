@@ -1,0 +1,171 @@
+\documentclass[12pt, a4j]{jsarticle}
+\usepackage[%
+top    = 30truemm,%
+bottom = 30truemm,%
+left   = 25truemm,%
+right  = 25truemm]{geometry}
+\usepackage{amsmath,amssymb,amsthm,bm,braket,ascmac,enumitem}
+
+\usepackage{mathtools}
+\mathtoolsset{showonlyrefs}
+
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\e}{\varepsilon}
+
+\begin{document}
+
+次の微分方程式を考える:
+\begin{equation}
+ \dfrac{d u(t)}{d t}
+  = A(t) u(t) + f(t, u(t))
+  \label{eq:full_equation}
+\end{equation}
+ここで 
+$u \colon [0, T] \to \R^{n}$,
+$f \colon [0, T] \times \R \to \R^{n}$,
+$A \colon [0, T] \to \mathrm{Mat}_{n \times n}(\R)$
+とする. $A u$ が線形項, $f$ が非線形項であり,
+線形項が数値積分の上で硬さの原因になっている状況を考える.
+
+\eqref{eq:full_equation} の線形項のみを取り出した方程式
+\begin{equation}
+ \dfrac{d v(t)}{d t} = A(t) v(t)
+  \label{eq:linear}
+\end{equation}
+を考える. この方程式の解は明示的に書くことができ,
+\begin{equation}
+ v(t) = \exp{\left( \int_{0}^{t} A(\tau) d \tau \right)} v(0)
+  \label{eq:sol_linear}
+\end{equation}
+となる. 以下, 記号の簡略化のために
+\begin{equation}
+ R(t, s) = \exp{\left( \int_{s}^{t} A(\tau) d \tau \right)}
+\end{equation}
+と置くことにする. これは線形の方程式 \eqref{eq:linear} の
+時刻 $s$ の状態から時刻 $t$ の状態へ時間発展させる
+演算子である. これを用いて, 形式的に
+\begin{equation}
+ \tilde{u}(t, s) = R(s, t) u(t)
+  \quad (s < t)
+\end{equation}
+とおく. $\tilde{u}(t, s)$ は 
+(それが数学的に可能かどうかは別として)
+$u(t)$ を線形項のみの方程式 \eqref{eq:linear} を用いて
+時刻 $s$ まで ``巻き戻した'' ものに対応する.
+$s$ を一旦固定し, $t$ について微分すると
+\begin{align}
+ \dfrac{\partial \tilde{u}(t, s)}{\partial t}
+ &= \dfrac{\partial R(s, t)}{\partial t} u(t)
+    + R(s, t) \dfrac{d u(t)}{d t}
+ \\
+ &= - R(s, t) A(t) u(t) 
+    + R(s, t) \left\{ A(t) u(t) + f(t, u(t)) \right\}
+ \\
+ &= R(s, t) f(t, R(t, s) \tilde{u}(t, s))
+ \label{eq:nonlin_part}
+\end{align}
+となる. もしこの方程式を解くことができれば,
+$u(t) = R(t, s) \tilde{u}(t, s)$
+により時刻 $t$ の $u(t)$ が求まる. \par
+
+以上の計算方法のポイントは, 線形項に関する積分と
+非線形項に関する積分を分離できていることにある.
+単に \eqref{eq:full_equation} を Runge-Kutta などで
+積分する場合は, 線形項と非線形項を一緒に処理するために,
+硬さの原因の線形項を対処できず, 時間刻み幅を気合で
+小さくするしかない. 一方で新たな方法では,
+$R$ を求める際に (線形の場合には知られていることが多い)
+数値的な安定性の高い方法を用いることで,
+線形項に対する硬さを回避できる. 敵はもはや非線形項のみであり,
+時間刻み幅をさほど細かく取らなくても計算ができる, という寸法である.
+
+とはいえ, $\tilde{u}(t, s)$ という,
+``巻き戻し'' を用いて定義された,
+必ずしも存在性が保証できない
+\footnote{例えば Navier-Stokes のように, 拡散項を含む方程式の場合. 拡散項に対応する偏微分方程式は熱方程式で, ``巻き戻し'' は ill-defined である. なお偏微分方程式の場合は $\R^{n}$ を関数空間に置き換えればよい.}量が間に入っており,
+少々扱いが難しい. そこで以下では非線形項由来の方程式
+\eqref{eq:nonlin_part} をメジャーないくつかの方法で
+差分化し, ``巻き戻し'' の時間発展が実は不要であることを見る. \par
+
+以下, 時間刻み幅を $\e$ とおく.
+時刻 $t = s$ での $u(t) = u(s) = \tilde{u}(s, s)$
+が与えられたとき, \eqref{eq:nonlin_part} を
+$t = s \sim s + \e$ で積分して $\tilde{u}(s + \e, s)$
+が得られれば, $u(s + \e) = R(s + \e, s) \tilde{u}(s + \epsilon)$
+により $t = s + \e$ における $u(t)$ が得られる.
+そこで \eqref{eq:nonlin_part} を $t = s \sim s + \e$ で
+数値積分する方法を考える.
+
+\begin{enumerate}[label=(\arabic{*})]
+ \item 1次の Euler 法
+       \begin{align}
+	\tilde{u}(s + \e, s)
+	 &= \tilde{u}(s, s) 
+	    + \e R(s, s) f(s, R(s, s) \tilde{u}(s, s))
+	 \\
+	 &= u(s) + \e f(s, u(s))	
+       \end{align}
+       と表される. よって
+       \begin{align}
+	u(s + \e) 
+	 &= R(s + \e, s) \, \tilde{u}(s + \e, s)
+	 \\
+	 &= R(s + \e, s) 
+	\left\{ u(s) + \e f(s, u(s)) \right\}	
+       \end{align}
+       となる. ``巻き戻し'' は起きない.
+ \item 中点法 (または修正 (modified) Euler 法)
+       \begin{align}
+	&\hphantom{{}={}}
+	\tilde{u}(s + \e, s)
+	\\
+	&= \tilde{u}(s, s)
+	+ \e R\left(s, s + \dfrac{\e}{2}\right)
+	\\
+	&\hphantom{{}= \tilde{u}(s, s) + {}}
+	     f\left( 
+	        s + \dfrac{\e}{2}, 
+	        R\left( s + \dfrac{\e}{2}, s \right)
+	        \left\{
+	          \tilde{u}(s, s) 
+	          + \dfrac{\e}{2}
+	            R\left( s, s \right)
+	            f\left( s, R(s, s) \tilde{u}(s, s) \right)
+	        \right\}
+	      \right)
+	\\
+	&= u(s)
+	+ \e R\left( s, s + \dfrac{\e}{2} \right)
+	f\left(
+	  s + \dfrac{\e}{2}, 
+	  R\left( s + \dfrac{\e}{2}, s \right)
+	  \left\{
+	    u(s) + \dfrac{\e}{2} f(s, u(s))
+	  \right\}
+	\right)
+       \end{align}
+       と表される. よって
+       \begin{align}
+	u(s + \e)
+	&= R(s + \e, s) \tilde{u}(s + \e, s)
+	\\
+	&= R(s + \e, s) u(s)
+	\\
+	&\hphantom{{}={}}
+	+ \e R\left( s + \e, s + \dfrac{\e}{2} \right)
+	f\left(
+	  s + \dfrac{\e}{2}, 
+	  R\left( s + \dfrac{\e}{2}, s \right)
+	  \left\{
+	    u(s) + \dfrac{\e}{2} f(s, u(s))
+	  \right\}
+	\right)
+       \end{align}
+       となる. 巻き戻しは起きない.
+ \item Heun 法 (または改良 (improved) Euler 法)
+
+ \item 4次 Runge-Kutta 法
+\end{enumerate}
+
+\end{document}
