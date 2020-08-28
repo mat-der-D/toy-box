@@ -3,38 +3,44 @@ import numpy as np
 
 
 class Board(object):
-    def __init__(self, dim):
+    def __init__(self, dim, disp):
         self.board = [
             [[None]*dim for _ in range(dim)]
             for _ in range(dim)
         ]
         self.d = dim
+        self.disp = disp
         
     def put_stone(self, position, color):
         try:
             x, y = position
             pole = self.board[x][y]
         except ValueError:
-            print("ERROR! " \
-                  "Position should be (x, y) or [x, y].")
+            if self.disp:
+                print("ERROR! " \
+                      "Position should be (x, y) or [x, y].")
         except IndexError:
-            print("ERROR! " \
-                  "Position (x, y) should be " \
-                  "included in 0-{}.".format(self.d-1))
+            if self.disp:
+                print("ERROR! " \
+                      "Position (x, y) should be " \
+                      "included in 0-{}.".format(self.d-1))
         except:
-            print("ERROR! Something went wrong.")
+            if self.disp:
+                print("ERROR! Something went wrong.")
         else:
             return self.put_stone_pole(self.board[x][y], color)
 
     def put_stone_pole(self, pole, color):
         if color is None:
-            print("ERROR! 'color' should not be None.")
+            if self.disp:
+                print("ERROR! 'color' should not be None.")
         else:
             for n in range(self.d):
                 if pole[n] is None:
                     pole[n] = color
                     return True
-            print("This pole is full!")
+            if self.disp:
+                print("This pole is full!")
             return False
 
 
@@ -106,21 +112,28 @@ class Judge(object):
 
         
 class Game(object):
-    def __init__(self, dim=4, player1="BB", player2="WW"):
+    def __init__(self, dim=4, player1="BB", player2="WW", disp=True):
         self.d = dim
-        self.b = Board(dim)
+        self.b = Board(dim, disp)
         self.j = Judge(dim)
         self.finished = False
-        self.turn = str(player1)
+        self.turn = player1
         self.dict_players = {
-            str(player1): str(player2),
-            str(player2): str(player1)
+            player1: player2,
+            player2: player1
             }
         self.winner = None
+        self.disp = disp
+        self.players = [player1, player2]
         
-        print(self)
-        self.show_turn()
+        if self.disp:
+            print(self)
+            self.show_turn()
 
+    def restart_game(self):
+        self.__init__(self.d, self.players[0], self.players[1],
+                      self.disp)
+            
     def change_turn(self):
         self.turn = self.dict_players[self.turn]
 
@@ -135,30 +148,32 @@ class Game(object):
         print(self)
 
     def put_stone(self, x, y):
-        if self.finished:
+        if self.finished and self.disp:
             print("The game has already finished. " \
                   "The winner is {}.".format(self.winner))
         else:
             put = self.b.put_stone((x, y), self.turn)
             if put:
-                print(self)
+                if self.disp:
+                    self.show_board()
                 self.winner = self.j.winner(self.b.board)
                 if self.winner is not None:
-                    print("{} win!".format(self.winner))
+                    if self.disp:
+                        print("{} win!".format(self.winner))
                     self.finished = True
                 if not self.finished:
                     self.change_turn()
-                    self.show_turn()
-
-    def restart_game(self):
-        self.__init__(self.d)
+                    if self.disp:
+                        self.show_turn()
 
     def help(self):
-        explanation = """
-        a
-        b
-        c
-        """
+        explanation = \
+        "g = Game()        : start game \n"            \
+        "g.put_stone(x, y) : put stone at (x, y) \n"   \
+        "g.restart_game()  : restart game \n"          \
+        "g.show_board()    : show board \n"            \
+        "g.show_turn()     : show who's turn it is \n" \
+        "g.show()          : show this"
         print(explanation)
 
     def __repr__(self):
