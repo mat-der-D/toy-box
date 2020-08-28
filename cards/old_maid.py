@@ -4,12 +4,11 @@ from game_of_cards import GameOfCards
 
 class OldMaid(GameOfCards):
     def __init__(self, num_players):
-        self.num_players = num_players
+        super().__init__(num_players)
         self.stock = self.simple_deck(num_joker=1)
         self.turn = 0
         self.order = list(range(self.num_players))
         
-        self.hands = [[] for _ in range(self.num_players)]
         self.deal()
     
     def deal(self):
@@ -51,7 +50,8 @@ class OldMaid(GameOfCards):
             if self.is_active(followers[n]):
                 return followers[n]
         return None
-    
+
+    # ----- main part -----
     def play(self):
         while self.num_active() >= 2:
             self.play_one_turn()
@@ -60,7 +60,6 @@ class OldMaid(GameOfCards):
         for player in self.order:
             print(f"Player {player}: {self.hands[player]}")
 
-    # ----- main part -----
     def play_one_turn(self):
         player = self.order[self.turn]
         next_player = self.next_player()

@@ -47,16 +47,16 @@ class Card:
         
     
 class GameOfCards:
-    def __init__(self):
-        self.num_players = None
+    def __init__(self, num_players):
+        self.num_players = num_players
         self.stock = []
-        self.hands = None
+        self.hands = [[] for _ in range(num_players)]
 
     # --- Methods for stock ---
     def shuffle(self):
         random.shuffle(self.stock)
 
-    def draw(self, place=0):
+    def draw(self, place=0, silent=True):
         """
         By default, you draw a card at the top of 'self.stock'.
         The drawn card is returned.
@@ -64,10 +64,12 @@ class GameOfCards:
         from the top of the stock is drawn.
         """
         if len(self.stock) == 0:
-            print("The stock is empty.")
+            if not silent:
+                print("The stock is empty.")
             return None
         elif place >= len(self.stock):
-            print(f"No card exists at the place {place}.")
+            if not silent:
+                print(f"No card exists at the place {place}.")
             return None
         else:
             return self.stock.pop(place)
@@ -133,12 +135,11 @@ class GameOfCards:
 
 class OldMaid(GameOfCards):
     def __init__(self, num_players):
-        self.num_players = num_players
+        super().__init__(num_players)
         self.stock = self.simple_deck(num_joker=1)
         self.turn = 0
         self.order = list(range(self.num_players))
         
-        self.hands = [[] for _ in range(self.num_players)]
         self.deal()
     
     def deal(self):
@@ -180,7 +181,8 @@ class OldMaid(GameOfCards):
             if self.is_active(followers[n]):
                 return followers[n]
         return None
-    
+
+    # ----- main part -----    
     def play(self):
         while self.num_active() >= 2:
             self.play_one_turn()
@@ -189,7 +191,6 @@ class OldMaid(GameOfCards):
         for player in self.order:
             print(f"Player {player}: {self.hands[player]}")
 
-    # ----- main part -----
     def play_one_turn(self):
         player = self.order[self.turn]
         next_player = self.next_player()
