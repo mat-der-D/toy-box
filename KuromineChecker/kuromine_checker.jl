@@ -60,6 +60,19 @@ function ⊗(sheet1, sheet2)
 end
 
 
+function ⊕(sheet1, sheet2)
+    size1, size2 = size.((sheet1, sheet2))
+    lcm_x, lcm_y = lcm.(size1, size2)
+    n_ext1 = (lcm_x, lcm_y) .÷ size1
+    n_ext2 = (lcm_x, lcm_y) .÷ size2
+
+    sheet1_ext = repeat(sheet1, n_ext1...)
+    sheet2_ext = repeat(sheet2, n_ext2...)
+
+    return sheet1_ext .| sheet2_ext
+end
+
+
 function candidates(sheet)
     size_x, size_y = size(sheet)
     cand = [
@@ -71,7 +84,7 @@ function candidates(sheet)
 end
 
 
-function pr(sheet; silent=false)
+function pr(sheet)
     cand = candidates(sheet)
     println("mod:", size(sheet))
     println("Candidates:")
