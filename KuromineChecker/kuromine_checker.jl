@@ -98,3 +98,4 @@ function prod_suc(ps::Int...)
         sheet = sheet ⊗ sheet_gen(ps[ip])
     end
     return sheet
+end
