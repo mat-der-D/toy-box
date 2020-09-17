@@ -45,9 +45,9 @@ end
 
 function sheet_gen(x::Int, y::Int, mod_x::Int, mod_y::Int)
     periods = (mod_x, mod_y)
-    candidates = Set(
+    candidates = Set((
         (x % mod_x, y % mod_y),
-    )
+    ))
     return Sheet(periods, candidates)
 end
 
