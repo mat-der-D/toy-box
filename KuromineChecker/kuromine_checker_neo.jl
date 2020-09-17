@@ -79,7 +79,7 @@ function pr(sheet::Sheet)
 end
 
 
-function prod_suc(ps::Int...)
+function prod(ps::Int...)
     sheet = sheet_gen(ps[1])
     for ip = 2:length(ps)
         sheet = sheet ⊗ sheet_gen(ps[ip])
