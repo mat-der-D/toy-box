@@ -8,23 +8,24 @@ class AskNameApp:
         self.master = master
         master.title("Your Name.")
         master.protocol("WM_DELETE_WINDOW", self.press_x)
+        master.resizable(width=False, height=False)
         PADX = 20
         PADY = 5
         
         self.frame_given = self.NameFrame(
             master, "Your Given Name", "Ichiro", "Other:"
         )
-        self.frame_given.pack(padx=PADX, pady=PADY)
+        self.frame_given.pack(padx=PADX, pady=PADY, expand=True)
 
         self.frame_family = self.NameFrame(
             master, "Your Family Name", "Suzuki", "Other:"
         )
-        self.frame_family.pack(padx=PADX, pady=PADY)
+        self.frame_family.pack(padx=PADX, pady=PADY, expand=True)
         
         self.frame_button = self.ButtonFrame(
             master, self.frame_family.answer, self.frame_given.answer
         )
-        self.frame_button.pack(padx=PADX, pady=PADY)
+        self.frame_button.pack(padx=PADX, pady=PADY, expand=True)
         
     def press_x(self):
         messagebox.showerror("WHAT!?", "Nooooooooooo!!!!!!!!")
@@ -35,6 +36,10 @@ class AskNameApp:
             super().__init__(master)
             self.default = default
             self.create_widget(question, default, entry_msg)
+            for icol in range(3):
+                self.grid_columnconfigure(icol, weight=1)
+            for irow in range(3):
+                self.grid_rowconfigure(icol, weight=1)
 
         def create_widget(self, question, default, entry_msg):
             # --- Question ---
