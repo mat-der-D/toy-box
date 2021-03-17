@@ -9,7 +9,7 @@ class Card:
         self.num = num
 
     def __repr__(self):
-        num_str = "0 A 1 2 3 4 5 6 7 8 9 10 J Q K"
+        num_str = "0 A 2 3 4 5 6 7 8 9 10 J Q K"
         return num_str.split()[self.num]
 
     def __eq__(self, other):
@@ -39,19 +39,18 @@ class Deck(list):
 
 
 class GameMaster:
-    def __init__(self, turn=3):
-        self.turn = turn
+    def __init__(self):
         self.deck = Deck()
-        self.cpu_hand = None
-        self.player_hand = None
+        self.cpu_hand = self.deck.draw()
+        self.player_hand = self.deck.draw()
         self.trash = []
 
-    def start(self):
+    def start(self, max_turn):
         self.__init__()
         self.cpu_hand = self.deck.draw()
         self.player_hand = self.deck.draw()
         print("=== ゲームを開始します ===")
-        for _ in range(self.turn):
+        for _ in range(max_turn):
             self.cpu_play()
             self.player_play()
         self.judge()
@@ -93,7 +92,7 @@ class GameMaster:
         elif self.player_hand < self.cpu_hand:
             print("あなたの負けです。")
         else:
-            raise Exception("unexpected error occured")
+            raise Exception("unexpected error occurred")
 
 
 if __name__ == "__main__":
