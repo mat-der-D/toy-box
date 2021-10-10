@@ -86,10 +86,10 @@ class AliasEnum(Enum):
     def alias_to_member(cls, alias: str):
         """Finds a member with an given alias"""
         filtered_alias = cls._alias_filter(alias)
-        if filtered_alias in cls._alias2member_map_.keys():
-            return cls._alias2member_map_[filtered_alias]
-        else:
-            return cls._default_member(alias, filtered_alias)
+        return cls._alias2member_map_.get(
+            filtered_alias,
+            cls._default_member(alias, filtered_alias),
+        )
 
     @classmethod
     def _default_member(cls, alias: str, filtered_alias: str):
@@ -101,10 +101,10 @@ class AliasEnum(Enum):
     def alias_to_value(cls, alias: str):
         """Finds a member with an given alias and returns its value"""
         filtered_alias = cls._alias_filter(alias)
-        if filtered_alias in cls._alias2member_map_.keys():
-            return cls._alias2member_map_[filtered_alias].value
-        else:
-            return cls._default_value(alias, filtered_alias)
+        return cls._alias2member_map_.get(
+            filtered_alias,
+            cls._default_value(alias, filtered_alias),
+        )
 
     @classmethod
     def _default_value(cls, alias: str, filtered_alias: str):
