@@ -765,7 +765,7 @@ fn main() {
         io::stdin()
             .read_line(&mut input)
             .expect("Failed to read line.");
-        match &*input.replace("\n", "").to_lowercase() {
+        match &*input.replace("\r\n", "").replace("\n", "").to_lowercase() {
             "y" => {
                 colored = true;
                 input.clear();
@@ -791,12 +791,13 @@ fn main() {
             .expect("Failed to read line.");
 
         let results: Vec<_> = input
-            .replace("\n", "")
+            .replace("\r\n", "") // for Windows
+            .replace("\n", "") // for Linux/Mac
             .chars()
             .map(|x| x.to_string().parse::<usize>())
             .collect();
         if results.iter().any(|x| matches!(x, Err(_))) {
-            println!("{:?}", Err("Invalid Syntax") as Result<&str, &str>);
+            println!("{:?}", Err("Invalid Syntax") as Result<&str, &str>,);
             input.clear();
             continue;
         }
