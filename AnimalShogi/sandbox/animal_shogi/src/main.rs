@@ -756,9 +756,32 @@ impl GameMaster {
 }
 
 fn main() {
-    let colored = true;
+    let mut colored = true;
     let mut input = String::new();
     let mut master = GameMaster::default();
+
+    loop {
+        println!("Do you want to use colored-mode?[Y/n] >");
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Failed to read line.");
+        match &*input.replace("\n", "").to_lowercase() {
+            "y" => {
+                colored = true;
+                input.clear();
+                break;
+            }
+            "n" => {
+                colored = false;
+                input.clear();
+                break;
+            }
+            _ => {
+                println!("please type 'Y' or 'n'");
+                input.clear();
+            }
+        }
+    }
 
     loop {
         master.show_status(colored);
