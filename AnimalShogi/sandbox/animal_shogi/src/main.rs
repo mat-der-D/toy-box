@@ -820,4 +820,6 @@ fn main() {
             break;
         }
     }
+    println!("Type any key to quit >");
+    io::stdin();
 }
