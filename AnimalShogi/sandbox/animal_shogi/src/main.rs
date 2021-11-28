@@ -1,10 +1,9 @@
 #![allow(unused)]
 use std::collections::{HashMap, HashSet};
-use std::str::FromStr;
 use std::error;
 use std::fmt;
 use std::io;
-
+use std::str::FromStr;
 
 #[derive(PartialEq, Debug)]
 enum ParseBoardError {
@@ -14,7 +13,7 @@ enum ParseBoardError {
 
 impl fmt::Display for ParseBoardError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let description = match *self {
+        let description = match self {
             ParseBoardError::InvalidColumnNum(n) => format!("contains a row with {} columns", n),
             ParseBoardError::InvalidRowNum(n) => format!("contains {} rows", n),
         };
@@ -25,24 +24,27 @@ impl fmt::Display for ParseBoardError {
 impl error::Error for ParseBoardError {}
 
 #[derive(PartialEq, Debug)]
-enum PieceMoveError {
-    ImpossibleDirection,
-    BoundaryError,
-    YourOtherPieceExists,
+enum IndexError {
+    OutOfBoardIndex(usize, usize),
+    OutOfPoolIndex(Player, usize),
 }
 
-impl fmt::Display for PieceMoveError {
+impl fmt::Display for IndexError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let description = match *self {
-            PieceMoveError::ImpossibleDirection => "the piece cannot move to that direction",
-            PieceMoveError::BoundaryError => "cannot move because of boundary",
-            PieceMoveError::YourOtherPieceExists => "there is your other piece",
+        let description = match self {
+            IndexError::OutOfBoardIndex(i, j) => format!("out of board index [{}, {}]", i, j),
+            IndexError::OutOfPoolIndex(player, index) => {
+                format!(
+                    "Player {} does not have the piece with index '{}'",
+                    player, index
+                )
+            }
         };
-        f.write_str(description)
+        f.write_str(&description)
     }
 }
 
-impl error::Error for PieceMoveError {}
+impl error::Error for IndexError {}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 enum Player {
@@ -125,29 +127,36 @@ struct Animal {
 impl Animal {
     fn new(animal_type: &AnimalType) -> Self {
         let possible_directions: HashSet<_> = match animal_type {
-            AnimalType::Chick => [
-                Direction::Forward,
-            ].iter().cloned().collect(),
+            AnimalType::Chick => [Direction::Forward].iter().cloned().collect(),
             AnimalType::Hen => [
                 Direction::Forward,
                 Direction::Backward,
                 Direction::Left,
                 Direction::Right,
                 Direction::ForwardLeft,
-                Direction::ForwardRight,                
-            ].iter().cloned().collect(),
+                Direction::ForwardRight,
+            ]
+            .iter()
+            .cloned()
+            .collect(),
             AnimalType::Elephant => [
                 Direction::ForwardLeft,
                 Direction::ForwardRight,
                 Direction::BackwardLeft,
-                Direction::BackwardRight,                
-            ].iter().cloned().collect(),
+                Direction::BackwardRight,
+            ]
+            .iter()
+            .cloned()
+            .collect(),
             AnimalType::Giraffe => [
                 Direction::Forward,
                 Direction::Backward,
                 Direction::Left,
-                Direction::Right,                
-            ].iter().cloned().collect(),
+                Direction::Right,
+            ]
+            .iter()
+            .cloned()
+            .collect(),
             AnimalType::Lion => [
                 Direction::Forward,
                 Direction::Backward,
@@ -157,9 +166,15 @@ impl Animal {
                 Direction::ForwardRight,
                 Direction::BackwardLeft,
                 Direction::BackwardRight,
-            ].iter().cloned().collect(),
+            ]
+            .iter()
+            .cloned()
+            .collect(),
         };
-        Animal{ animal_type: animal_type.clone(), possible_directions }
+        Animal {
+            animal_type: animal_type.clone(),
+            possible_directions,
+        }
     }
 }
 
@@ -203,7 +218,12 @@ impl Piece {
             PieceType::Chicken => Animal::new(&AnimalType::Hen),
             _ => top.clone(),
         };
-        Piece{ piece_type: piece_type.clone(), top, bottom, is_reversed: false }
+        Piece {
+            piece_type: piece_type.clone(),
+            top,
+            bottom,
+            is_reversed: false,
+        }
     }
 
     fn evolve(&mut self) {
@@ -231,7 +251,11 @@ struct OwnedPiece {
 
 impl fmt::Display for OwnedPiece {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let Piece{ piece_type, is_reversed, .. } = &self.piece;
+        let Piece {
+            piece_type,
+            is_reversed,
+            ..
+        } = &self.piece;
         let s = match (&self.owner, piece_type, is_reversed) {
             (Player::First, PieceType::Chicken, false) => 'C'.to_string(),
             (Player::First, PieceType::Chicken, true) => 'H'.to_string(),
@@ -248,29 +272,58 @@ impl fmt::Display for OwnedPiece {
     }
 }
 
-
 impl FromStr for OwnedPiece {
     type Err = &'static str;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "C" => Ok(OwnedPiece{ owner: Player::First, piece: Piece::new(&PieceType::Chicken) }),
+            "C" => Ok(OwnedPiece {
+                owner: Player::First,
+                piece: Piece::new(&PieceType::Chicken),
+            }),
             "H" => {
                 let mut piece = Piece::new(&PieceType::Chicken);
                 piece.evolve();
-                Ok(OwnedPiece{ owner: Player::First, piece })
-            },
-            "E" => Ok(OwnedPiece{ owner: Player::First, piece: Piece::new(&PieceType::Elephant) }),
-            "G" => Ok(OwnedPiece{ owner: Player::First, piece: Piece::new(&PieceType::Giraffe) }),
-            "L" => Ok(OwnedPiece{ owner: Player::First, piece: Piece::new(&PieceType::Lion) }),
-            "c" => Ok(OwnedPiece{ owner: Player::Second, piece: Piece::new(&PieceType::Chicken) }),
+                Ok(OwnedPiece {
+                    owner: Player::First,
+                    piece,
+                })
+            }
+            "E" => Ok(OwnedPiece {
+                owner: Player::First,
+                piece: Piece::new(&PieceType::Elephant),
+            }),
+            "G" => Ok(OwnedPiece {
+                owner: Player::First,
+                piece: Piece::new(&PieceType::Giraffe),
+            }),
+            "L" => Ok(OwnedPiece {
+                owner: Player::First,
+                piece: Piece::new(&PieceType::Lion),
+            }),
+            "c" => Ok(OwnedPiece {
+                owner: Player::Second,
+                piece: Piece::new(&PieceType::Chicken),
+            }),
             "h" => {
                 let mut piece = Piece::new(&PieceType::Chicken);
                 piece.evolve();
-                Ok(OwnedPiece{ owner: Player::Second, piece })
-            },
-            "e" => Ok(OwnedPiece{ owner: Player::Second, piece: Piece::new(&PieceType::Elephant) }),
-            "g" => Ok(OwnedPiece{ owner: Player::Second, piece: Piece::new(&PieceType::Giraffe) }),
-            "l" => Ok(OwnedPiece{ owner: Player::Second, piece: Piece::new(&PieceType::Lion) }),
+                Ok(OwnedPiece {
+                    owner: Player::Second,
+                    piece,
+                })
+            }
+            "e" => Ok(OwnedPiece {
+                owner: Player::Second,
+                piece: Piece::new(&PieceType::Elephant),
+            }),
+            "g" => Ok(OwnedPiece {
+                owner: Player::Second,
+                piece: Piece::new(&PieceType::Giraffe),
+            }),
+            "l" => Ok(OwnedPiece {
+                owner: Player::Second,
+                piece: Piece::new(&PieceType::Lion),
+            }),
             _ => Err("no piece"),
         }
     }
@@ -286,7 +339,6 @@ impl OwnedPiece {
     }
 }
 
-
 #[derive(Debug, Clone)]
 struct PiecePool {
     pools: HashMap<Player, Vec<Piece>>,
@@ -297,11 +349,25 @@ impl Default for PiecePool {
         let mut pools: HashMap<Player, Vec<Piece>> = HashMap::new();
         pools.insert(Player::First, Vec::new());
         pools.insert(Player::Second, Vec::new());
-        PiecePool { pools }        
+        PiecePool { pools }
     }
 }
 
 impl PiecePool {
+    fn validate_index(&self, owner: &Player, index: usize) -> Result<&str, IndexError> {
+        let pool = self.pool_of(&owner);
+        if index < pool.len() {
+            Ok("")
+        } else {
+            Err(IndexError::OutOfPoolIndex(owner.clone(), index))
+        }
+    }
+
+    // fn is_valid_index(&self, owner: &Player, index: usize) -> bool {
+    //     let pool = self.pool_of(&owner);
+    //     index < pool.len()
+    // }
+
     fn pool_of(&self, owner: &Player) -> &Vec<Piece> {
         &self.pools[owner]
     }
@@ -316,7 +382,10 @@ impl PiecePool {
     fn remove_piece(&mut self, owner: &Player, index: usize) -> OwnedPiece {
         let mut pool = self.pools.get_mut(owner).unwrap();
         let piece = pool.remove(index);
-        OwnedPiece{ owner: owner.clone(), piece }
+        OwnedPiece {
+            owner: owner.clone(),
+            piece,
+        }
     }
 }
 
@@ -333,13 +402,13 @@ impl FromStr for Board {
 
         let num_rows: usize = lines.len();
         if num_rows != 4 {
-            return Err(ParseBoardError::InvalidRowNum(num_rows))
+            return Err(ParseBoardError::InvalidRowNum(num_rows));
         }
 
         for (i, line) in lines.iter().enumerate() {
             let num_columns: usize = line.len();
             if num_columns != 3 {
-                return Err(ParseBoardError::InvalidRowNum(num_rows))
+                return Err(ParseBoardError::InvalidRowNum(num_rows));
             }
             for (j, c) in line.chars().enumerate() {
                 let mut buffer = [0u8; 4];
@@ -350,7 +419,7 @@ impl FromStr for Board {
                 }
             }
         }
-        Ok(Board{ board })
+        Ok(Board { board })
     }
 }
 
@@ -368,16 +437,28 @@ impl fmt::Display for Board {
 }
 
 impl Board {
+    fn validate_index(index: [usize; 2]) -> Result<&'static str, IndexError> {
+        if (index[0] <= 3) & (index[1] <= 2) {
+            Ok("")
+        } else {
+            Err(IndexError::OutOfBoardIndex(index[0], index[1]))
+        }
+    }
+
+    // fn is_valid_index(index: [usize; 2]) -> bool {
+    //     (index[0] <= 3) & (index[1] <= 2)
+    // }
+
     fn owner_of(&self, index: [usize; 2]) -> Option<&Player> {
         match &self.board[index[0]][index[1]] {
-            Some(OwnedPiece{ owner, .. }) => Some(owner),
+            Some(OwnedPiece { owner, .. }) => Some(owner),
             None => None,
         }
     }
 
     fn possible_next_of(&self, index: [usize; 2]) -> HashSet<[usize; 2]> {
         let mut s = HashSet::new();
-        if let Some(OwnedPiece{ owner, piece }) = &self.board[index[0]][index[1]] {
+        if let Some(OwnedPiece { owner, piece }) = &self.board[index[0]][index[1]] {
             for direction in piece.possible_directions().iter() {
                 let next_index = match direction.next_index(&owner, index) {
                     Ok(x) => x,
@@ -392,7 +473,7 @@ impl Board {
         s
     }
 
-    fn put_piece(&mut self, piece: OwnedPiece, index: [usize; 2]){
+    fn place_piece(&mut self, piece: OwnedPiece, index: [usize; 2]) {
         self.board[index[0]][index[1]] = Some(piece);
     }
 
@@ -406,7 +487,7 @@ impl Board {
     fn evolve_at(&mut self, index: [usize; 2]) -> Result<&str, &str> {
         let mut piece = match &mut self.board[index[0]][index[1]] {
             Some(x) => x,
-            None => { return Err("no piece exists there") }
+            None => return Err("no piece exists there"),
         };
         piece.evolve();
         Ok("evolved!")
@@ -433,7 +514,7 @@ impl Board {
                         if colored {
                             row_str.push_str("\x1b[0m")
                         }
-                    },
+                    }
                     None => row_str.push_str(" "),
                 };
                 row_str.push_str("|");
@@ -445,7 +526,6 @@ impl Board {
     }
 }
 
-
 #[derive(Debug, Clone)]
 struct TurnCounter {
     number: u32,
@@ -454,7 +534,10 @@ struct TurnCounter {
 
 impl Default for TurnCounter {
     fn default() -> Self {
-        TurnCounter { number: 1, player: Player::First }
+        TurnCounter {
+            number: 1,
+            player: Player::First,
+        }
     }
 }
 
@@ -467,7 +550,9 @@ impl fmt::Display for TurnCounter {
 impl TurnCounter {
     fn advance(&mut self) {
         match self.player {
-            Player::First => { self.player = Player::Second; },
+            Player::First => {
+                self.player = Player::Second;
+            }
             Player::Second => {
                 self.number += 1;
                 self.player = Player::First;
@@ -499,13 +584,21 @@ impl GameMaster {
     fn show_pool(&self, player: &Player, colored: bool) {
         let mut piece_names = Vec::new();
         let pool = self.pools.pool_of(player);
-        for (i, Piece{ piece_type, .. }) in pool.iter().enumerate() {
+        for (i, Piece { piece_type, .. }) in pool.iter().enumerate() {
             piece_names.push(format!("{:?}({})", piece_type, i));
         }
         if colored {
             match player {
-                Player::First => println!("\x1b[97m\x1b[40m{}'s Pool\x1b[0m: {}", player, piece_names.join(", ")),
-                Player::Second => println!("\x1b[30m\x1b[47m{}'s Pool\x1b[0m: {}", player, piece_names.join(", ")),
+                Player::First => println!(
+                    "\x1b[97m\x1b[40m{}'s Pool\x1b[0m: {}",
+                    player,
+                    piece_names.join(", ")
+                ),
+                Player::Second => println!(
+                    "\x1b[30m\x1b[47m{}'s Pool\x1b[0m: {}",
+                    player,
+                    piece_names.join(", ")
+                ),
             };
         } else {
             println!("{}'s Pool: {}", player, piece_names.join(", "));
@@ -521,7 +614,7 @@ impl GameMaster {
             let pool = self.pools.pool_of(player);
             for Piece { piece_type, .. } in pool.iter() {
                 if matches!(piece_type, PieceType::Lion) {
-                    return Some(player)
+                    return Some(player);
                 }
             }
         }
@@ -530,7 +623,7 @@ impl GameMaster {
             for i in 0..4 {
                 for j in 0..3 {
                     if board.possible_next_of([i, j]).contains(&index_lion) {
-                        return true
+                        return true;
                     }
                 }
             }
@@ -539,23 +632,37 @@ impl GameMaster {
 
         for (j_lion, piece) in self.board.board[0].iter().enumerate() {
             match piece {
-                Some(OwnedPiece{ owner: Player::First, piece: Piece{ piece_type: PieceType::Lion, .. } }) => {
+                Some(OwnedPiece {
+                    owner: Player::First,
+                    piece:
+                        Piece {
+                            piece_type: PieceType::Lion,
+                            ..
+                        },
+                }) => {
                     if !is_lion_dangerous(&self.board, [0, j_lion]) {
-                        return Some(&Player::First)
+                        return Some(&Player::First);
                     }
-                },
-                _ => {},
+                }
+                _ => {}
             }
         }
 
         for (j_lion, piece) in self.board.board[3].iter().enumerate() {
             match piece {
-                Some(OwnedPiece{ owner: Player::Second, piece: Piece{ piece_type: PieceType::Lion, .. } }) => {
+                Some(OwnedPiece {
+                    owner: Player::Second,
+                    piece:
+                        Piece {
+                            piece_type: PieceType::Lion,
+                            ..
+                        },
+                }) => {
                     if !is_lion_dangerous(&self.board, [3, j_lion]) {
-                        return Some(&Player::Second)
+                        return Some(&Player::Second);
                     }
-                },
-                _ => {},
+                }
+                _ => {}
             }
         }
 
@@ -563,27 +670,42 @@ impl GameMaster {
     }
 
     fn move_piece(&mut self, index_from: [usize; 2], index_to: [usize; 2]) -> Result<&str, &str> {
-        let player = self.counter.player.clone();
-        self.move_piece_dev(&player, index_from, index_to)
+        Self::move_piece_dev(
+            &mut self.board,
+            &mut self.pools,
+            &mut self.counter,
+            index_from,
+            index_to,
+        )
     }
 
-    fn move_piece_dev(&mut self, player: &Player, index_from: [usize; 2], index_to: [usize; 2]) -> Result<&str, &str> {
-        if (index_from[0] > 3) | (index_from[1] > 2) | (index_to[0] > 3) | (index_to[1] > 2) {
-            return Err("index out of bounds")
+    fn move_piece_dev(
+        board: &mut Board,
+        pools: &mut PiecePool,
+        counter: &mut TurnCounter,
+        index_from: [usize; 2],
+        index_to: [usize; 2],
+    ) -> Result<&'static str, &'static str> {
+        let player = &counter.player.clone(); // clone is needed because player is changed when turn is advanced
+        if Board::validate_index(index_from).is_err() {
+            return Err("origin index out of bounds");
         }
-        match self.board.owner_of(index_from) {
-            Some(x) if x != player => { return Err("you cannot control the piece") },
-            None => { return Err("no piece exists there") },
-            _ => {},
+        if Board::validate_index(index_to).is_err() {
+            return Err("target index out of bounds");
         }
-        if self.board.possible_next_of(index_from).contains(&index_to) {
-            let taken_piece = self.board.move_piece(index_from, index_to);
+        match board.owner_of(index_from) {
+            Some(x) if x != player => return Err("you cannot control the piece"),
+            None => return Err("no piece exists there"),
+            _ => {}
+        }
+        if board.possible_next_of(index_from).contains(&index_to) {
+            let taken_piece = board.move_piece(index_from, index_to);
             if [(&Player::First, 0), (&Player::Second, 3)].contains(&(player, index_to[0])) {
-                self.board.evolve_at(index_to).expect("Unexpected Situation");
+                board.evolve_at(index_to).expect("Unexpected Situation");
             }
-            self.counter.advance();
+            counter.advance();
             if let Some(p) = taken_piece {
-                self.pools.add_piece(player, p);
+                pools.add_piece(player, p);
                 Ok("moved and took a piece")
             } else {
                 Ok("moved")
@@ -593,30 +715,47 @@ impl GameMaster {
         }
     }
 
-    fn place_piece_from_pool(&mut self, index_in_pool: usize, index_in_board: [usize; 2]) -> Result<&str, &str> {
-        let player = self.counter.player.clone();
-        self.place_piece_from_pool_dev(&player, index_in_pool, index_in_board)
+    fn place_piece_from_pool(
+        &mut self,
+        index_in_pool: usize,
+        index_in_board: [usize; 2],
+    ) -> Result<&str, &str> {
+        Self::place_piece_from_pool_dev(
+            &mut self.pools,
+            &mut self.board,
+            &mut self.counter,
+            index_in_pool,
+            index_in_board,
+        )
     }
 
-    fn place_piece_from_pool_dev(&mut self, player: &Player, index_in_pool: usize, index_in_board: [usize; 2]) -> Result<&str, &str> {
-        if !self.board.owner_of(index_in_board).is_none() {
+    fn place_piece_from_pool_dev(
+        pools: &mut PiecePool,
+        board: &mut Board,
+        counter: &mut TurnCounter,
+        index_in_pool: usize,
+        index_in_board: [usize; 2],
+    ) -> Result<&'static str, &'static str> {
+        let player = &counter.player.clone(); // clone is needed because player is changed when turn is advanced
+        if pools.validate_index(player, index_in_pool).is_err() {
+            return Err("pool index out of bounds");
+        }
+        if Board::validate_index(index_in_board).is_err() {
+            return Err("board index out of bounds");
+        }
+
+        if !board.owner_of(index_in_board).is_none() {
             Err("some piece has already been there")
-        } else if self.pools.pool_of(&player).len() <= index_in_pool {
-            Err("invalid index")
         } else {
-            let piece = self.pools.remove_piece(player, index_in_pool);
-            self.board.put_piece(piece, index_in_board);
-            self.counter.advance();
+            let piece = pools.remove_piece(player, index_in_pool);
+            board.place_piece(piece, index_in_board);
+            counter.advance();
             Ok("succesfully put the piece")
         }
     }
-
 }
 
-
-
 fn main() {
-
     let colored = true;
     let mut input = String::new();
     let mut master = GameMaster::default();
@@ -624,21 +763,31 @@ fn main() {
     loop {
         master.show_status(colored);
         println!("Input your hand >");
-        io::stdin().read_line(&mut input).expect("Failed to read line.");
-        let numbers: Vec<_> = input.replace("\n", "")
-                                   .chars()
-                                   .map(|x| x.to_string().parse::<usize>().unwrap_or_else(|_| 9))
-                                   .collect();
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Failed to read line.");
+
+        let results: Vec<_> = input
+            .replace("\n", "")
+            .chars()
+            .map(|x| x.to_string().parse::<usize>())
+            .collect();
+        if results.iter().any(|x| matches!(x, Err(_))) {
+            println!("{:?}", Err("Invalid Syntax") as Result<&str, &str>);
+            input.clear();
+            continue;
+        }
+        let numbers: Vec<_> = results.iter().cloned().map(|x| x.unwrap()).collect();
         match numbers.len() {
             3 => {
                 let result = master.place_piece_from_pool(numbers[0], [numbers[1], numbers[2]]);
                 println!("{:?}", result);
-            },
+            }
             4 => {
                 let result = master.move_piece([numbers[0], numbers[1]], [numbers[2], numbers[3]]);
                 println!("{:?}", result);
-            },
-            _ => println!("Invalid Syntax: {:?}", numbers),
+            }
+            _ => println!("{:?}", Err("Invalid Syntax") as Result<&str, &str>),
         };
         input.clear();
         if let Some(w) = master.winner() {
@@ -647,40 +796,4 @@ fn main() {
             break;
         }
     }
-
-    // let colored = true;
-    // let mut master = GameMaster::default();
-    // master.show_status(colored);
-
-    // let x = master.move_piece(&Player::First, [3, 1], [2, 0]);
-    // println!("{:?}", x);
-    // master.show_status(colored);
-    // if let Some(w) = master.winner() {
-    //     println!("{:?} won", w);
-    // }
-
-    // let x = master.move_piece(&Player::First, [2, 0], [1, 0]);
-    // println!("{:?}", x);
-    // master.show_status(colored);
-    // if let Some(w) = master.winner() {
-    //     println!("{:?} won", w);
-    // }
-
-    // let x = master.move_piece(&Player::First, [1, 0], [0, 0]);
-    // println!("{:?}", x);
-    // master.show_status(colored);
-    // if let Some(w) = master.winner() {
-    //     println!("{:?} won", w);
-    // }
-
-    // let x = master.move_piece(&Player::Second, [0, 1], [1, 2]);
-    // println!("{:?}", x);
-    // master.show_status(colored);
-    // if let Some(w) = master.winner() {
-    //     println!("{:?} won", w);
-    // }
-    // let mut x = String::new();
-    // let result = io::stdin().read_line(&mut x);
-    // println!("{}", x);
-    // println!("{:?}", result);
 }
