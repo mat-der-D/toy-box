@@ -1,0 +1,39 @@
+{
+  "Planet": {
+    "Sun": "太陽",
+    "Moon": "月",
+    "Mercury": "水星",
+    "Venus": "金星",
+    "Mars": "火星",
+    "Jupiter": "木星",
+    "Saturn": "土星",
+    "Uranus": "天王星",
+    "Neptune": "海王星",
+    "Pluto": "冥王星"
+  },
+  "Sign": {
+    "Aries": "牡羊座",
+    "Taurus": "牡牛座",
+    "Gemini": "双子座",
+    "Cancer": "蟹座",
+    "Leo": "獅子座",
+    "Virgo": "乙女座",
+    "Libra": "天秤座",
+    "Scorpio": "蠍座",
+    "Sagittarius": "射手座",
+    "Capricorn": "山羊座",
+    "Aquarius": "水瓶座",
+    "Pisces": "魚座"
+  },
+  "Modality": {
+    "Cardinal": "活動宮",
+    "Fixed": "不動宮",
+    "Mutable": "柔軟宮"
+  },
+  "Element": {
+    "Fire": "火",
+    "Earth": "土",
+    "Air": "風",
+    "Water": "水"
+  }
+}
