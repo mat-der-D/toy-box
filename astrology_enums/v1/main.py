@@ -15,6 +15,14 @@ def main():
     print(f"惑星: {planet.japanese}")
     print(f"サイン: {sign.japanese}")
 
+    sign = Sign.Virgo
+    modality = sign.modality
+    print(modality.japanese)
+    element = sign.element
+    print(element.japanese)
+    sign2 = Sign.from_modality_element(modality, element)
+    print(sign2.japanese)
+
 
 if __name__ == '__main__':
     main()

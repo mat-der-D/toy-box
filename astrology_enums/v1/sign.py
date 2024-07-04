@@ -31,6 +31,21 @@ class Sign(Enum):
         idx = int(degree // 30) % 12
         return cls.from_index(idx)
 
+    @property
+    def modality(self) -> 'Modality':
+        return Modality.from_index(self.index % len(Modality))
+
+    @property
+    def element(self) -> 'Element':
+        return Element.from_index(self.index % len(Element))
+
+    @classmethod
+    def from_modality_element(cls, modality: 'Modality', element: 'Element') -> 'Sign':
+        for sign in cls:
+            if sign.modality == modality and sign.element == element:
+                return sign
+        raise ValueError(f"Sign not found: {repr(modality)}, {repr(element)}")
+
 
 class Modality(Enum):
     Cardinal = (0, "活動宮")

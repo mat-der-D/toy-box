@@ -10,7 +10,7 @@ class IdxJapEnum(Enum):
         return self.japanese
 
     def __repr__(self):
-        return f"{self.name}({self.index}, {self.japanese})"
+        return f"{self.__class__.__name__}.{self.name}({self.index}, {self.japanese})"
 
     @classmethod
     def from_index(cls, idx: int) -> 'IdxJapEnum':
@@ -41,6 +41,21 @@ class Sign(SignLikeEnum):
     Capricorn = (9, "山羊座")
     Aquarius = (10, "水瓶座")
     Pisces = (11, "魚座")
+
+    @property
+    def modality(self) -> 'Modality':
+        return Modality.from_index(self.index)
+
+    @property
+    def element(self) -> 'Element':
+        return Element.from_index(self.index)
+
+    @classmethod
+    def from_modality_element(cls, modality: 'Modality', element: 'Element') -> 'Sign':
+        for sign in cls:
+            if sign.modality == modality and sign.element == element:
+                return sign
+        raise ValueError(f"Sign not found: {repr(modality)}, {repr(element)}")
 
 
 class Modality(SignLikeEnum):
