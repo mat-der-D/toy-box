@@ -40,6 +40,10 @@ class Sign(TranslatableEnum):
     Aquarius = 10
     Pisces = 11
 
+    @classmethod
+    def from_degree(cls, degree: float) -> 'Sign':
+        return cls(int(degree // 30) % len(cls))
+
     @property
     def modality(self) -> 'Modality':
         return Modality(self.value % len(Modality))
@@ -61,9 +65,17 @@ class Modality(TranslatableEnum):
     Fixed = 1
     Mutable = 2
 
+    @classmethod
+    def from_degree(cls, degree: float) -> 'Modality':
+        return cls(int(degree // 30) % len(cls))
+
 
 class Element(TranslatableEnum):
     Fire = 0
     Earth = 1
     Air = 2
     Water = 3
+
+    @classmethod
+    def from_degree(cls, degree: float) -> 'Element':
+        return cls(int(degree // 30) % len(cls))
